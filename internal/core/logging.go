@@ -13,7 +13,7 @@ import (
 func RunModuleWithLogging(entry ModuleEntry, cmd *cobra.Command) error {
 	logger := slog.Default()
 	startTime := time.Now()
-	
+
 	logger.Info("Starting module", slog.String("module", entry.Metadata.UniqueName))
 
 	mod := entry.Factory()
@@ -39,7 +39,7 @@ func RunModuleWithLogging(entry ModuleEntry, cmd *cobra.Command) error {
 	// Run module
 	err, msg := mod.Run()
 	elapsed := time.Since(startTime)
-	
+
 	if err != nil {
 		logger.Error("Module execution failed",
 			slog.String("module", entry.Metadata.UniqueName),
@@ -48,12 +48,12 @@ func RunModuleWithLogging(entry ModuleEntry, cmd *cobra.Command) error {
 		)
 		return err
 	}
-	
+
 	logger.Info("Module executed successfully",
 		slog.String("module", entry.Metadata.UniqueName),
 		slog.Duration("duration", elapsed),
 		slog.String("result", msg),
 	)
-	
+
 	return nil
 }

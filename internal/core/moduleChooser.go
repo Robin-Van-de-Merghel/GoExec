@@ -7,15 +7,14 @@ import (
 
 type ModuleEntry struct {
 	Metadata modules.ModuleMetadata
-	Factory  func() modules.Module 
+	Factory  func() modules.Module
 }
 
 var AllModules = []ModuleEntry{
 	{
-		Metadata: smb.Metadata, 
-		Factory: func () modules.Module {
+		Metadata: smb.Metadata,
+		Factory: func() modules.Module {
 			return &smb.Module{}
 		},
 	},
 }
-

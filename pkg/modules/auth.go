@@ -11,7 +11,7 @@ This module supports all of them.
 */
 
 // TODO: Implement the choice
-type Credentials interface {}
+type Credentials interface{}
 
 // Classic username/password
 type UsernamePassAuth struct {
@@ -24,4 +24,3 @@ type UsernamePassAuth struct {
 
 // TODO: Hash
 // type HashAuth struct {}
-

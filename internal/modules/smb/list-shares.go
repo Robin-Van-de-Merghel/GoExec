@@ -18,16 +18,16 @@ Goals:
 
 */
 
-var Metadata = modules.ModuleMetadata {
-	UniqueName: "list-shares",
+var Metadata = modules.ModuleMetadata{
+	UniqueName:      "list-shares",
 	PresentMessages: `List-shares is a SMB module aiming at getting first information about SMB shares such as: open shares, rights, and more.`,
-	Labels: []string{"SMB"},
-} 
+	Labels:          []string{"SMB"},
+}
 
 type ModuleInput struct {
 	// Target, either an IP or a Host
 	Target modules.ModuleTarget
-	
+
 	// Credentials
 	// TODO: Change for generic
 	Credentials modules.UsernamePassAuth
@@ -38,15 +38,14 @@ type Module struct {
 }
 
 func (m *Module) Configure(input any) (error, string) {
-    mi, ok := input.(ModuleInput)
-    if !ok {
-        return fmt.Errorf("invalid input type"), ""
-    }
-    m.Input = mi
-    return nil, "configured"
+	mi, ok := input.(ModuleInput)
+	if !ok {
+		return fmt.Errorf("invalid input type"), ""
+	}
+	m.Input = mi
+	return nil, "configured"
 }
 
-func (m* Module) Run() (error, string) {
+func (m *Module) Run() (error, string) {
 	return nil, "Success"
 }
-
