@@ -225,9 +225,9 @@ func addFlagsFromStruct(cmd *cobra.Command, t reflect.Type) {
 	}
 	fields := flattenStructFields(t)
 	for fieldName, field := range fields {
-		help := fmt.Sprintf("%s (%s)", field.Tag.Get("help"), field.Type.Name()) 
+		help := fmt.Sprintf("%s (%s)", field.Tag.Get("help"), field.Type.Name())
 
-		switch (field.Type.Kind()) {
+		switch field.Type.Kind() {
 		case reflect.String:
 			cmd.Flags().String(fieldName, "", help)
 		case reflect.Bool:
