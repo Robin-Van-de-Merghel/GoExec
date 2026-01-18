@@ -27,6 +27,7 @@ type UsernamePassAuth struct {
 	Password string `help:"Password to login with"`
 }
 
+// Kerberos Auth
 type KerberosAuth struct {
 	Kerberos bool `help:"Use kerberos auth, requires KRB5CCNAME env variable"`
 }
