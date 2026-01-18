@@ -2,6 +2,8 @@ package core
 
 import (
 	"fmt"
+	"log/slog"
+	"maps"
 	"os"
 	"reflect"
 	"strings"
@@ -91,15 +93,6 @@ func SetupCLI() *cobra.Command {
 			return nil
 		},
 	}
-
-	// Custom help function for root
-	rootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
-		fmt.Println("GoExec - A dynamic module runner for executing various tools and utilities")
-		fmt.Println("\nUsage:")
-		fmt.Println("  goexec [TAGS]... [flags]")
-		fmt.Println("\nFlags:")
-		cmd.Flags().PrintDefaults()
-	})
 
 	// Global flags
 	rootCmd.Flags().BoolVarP(&listTags, "list-tags", "T", false, "List all available tags")
@@ -207,7 +200,7 @@ func getModuleInputType(entry ModuleEntry) reflect.Type {
 }
 
 // flattenStructFields recursively flattens struct fields and returns a map of fieldName -> (type, tag)
-func flattenStructFields(t reflect.Type, prefix string) map[string]reflect.StructField {
+func flattenStructFields(t reflect.Type) map[string]reflect.StructField {
 	fields := make(map[string]reflect.StructField)
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
@@ -215,10 +208,8 @@ func flattenStructFields(t reflect.Type, prefix string) map[string]reflect.Struc
 
 		// If struct, recurse
 		if f.Type.Kind() == reflect.Struct {
-			nested := flattenStructFields(f.Type, "")
-			for k, v := range nested {
-				fields[k] = v
-			}
+			nested := flattenStructFields(f.Type)
+			maps.Copy(fields, nested)
 			continue
 		}
 
@@ -232,13 +223,17 @@ func addFlagsFromStruct(cmd *cobra.Command, t reflect.Type) {
 	if t == nil {
 		return
 	}
-	fields := flattenStructFields(t, "")
+	fields := flattenStructFields(t)
 	for fieldName, field := range fields {
-		help := field.Tag.Get("help")
-		if help == "" {
-			help = fieldName + " (" + field.Type.Name() + ")"
+		help := fmt.Sprintf("%s (%s)", field.Tag.Get("help"), field.Type.Name()) 
+
+		switch (field.Type.Kind()) {
+		case reflect.String:
+			cmd.Flags().String(fieldName, "", help)
+		case reflect.Bool:
+			cmd.Flags().Bool(fieldName, false, help)
 		}
-		cmd.Flags().String(fieldName, "", help)
+
 	}
 }
 
@@ -249,15 +244,39 @@ func setStructFromFlags(val reflect.Value, t reflect.Type, cmd *cobra.Command, p
 		fv := val.Field(i)
 		fieldName := f.Name
 
+		// If it's a struct, go deeper in it. It flattens arguments.
+		//
+		// For example, with:
+		// - myStruct { Username string, Password string }
+		//
+		// Instead of having myStruct.Username in the arguments, it is flatten
+		// to obtain Username only.
+
 		if f.Type.Kind() == reflect.Struct {
 			setStructFromFlags(fv, f.Type, cmd, prefix)
 			continue
 		}
 
 		flagName := fieldName
+
+		// Handle different types of arguments
 		if cmd.Flags().Changed(flagName) {
-			valStr, _ := cmd.Flags().GetString(flagName)
-			fv.SetString(valStr)
+			switch f.Type.Kind() {
+			case reflect.String:
+				valStr, err := cmd.Flags().GetString(flagName)
+				if err != nil {
+					slog.Warn(fmt.Sprintf("Ignoring flag %s. Bad input.", flagName))
+				}
+				fv.SetString(valStr)
+			case reflect.Bool:
+				valBool, err := cmd.Flags().GetBool(flagName)
+				if err != nil {
+					slog.Warn(fmt.Sprintf("Ignoring flag %s. Bad input.", flagName))
+				}
+				fv.SetBool(valBool)
+			default:
+				slog.Warn("Unknown flag type.")
+			}
 		}
 	}
 }

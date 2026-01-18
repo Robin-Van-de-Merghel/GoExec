@@ -31,7 +31,7 @@ type ModuleInput struct {
 
 	// Credentials
 	// TODO: Change for generic
-	Credentials modules.UsernamePassAuth
+	Credentials modules.Credentials
 }
 
 type Module struct {
@@ -49,10 +49,10 @@ func (m *Module) Configure(input any) (error, string) {
 
 func (m *Module) Run() (error, string) {
 	client := libsmbclient.New()
-	// FIXME: Not working with empty password with SMB server
-	client.SetAuthCallback(modules.SMBAuth(
-		m.Input.Credentials.Domain, m.Input.Credentials.Username, m.Input.Credentials.Password,
-	))
+	err := modules.SetupSMBAuth(client, m.Input.Credentials)
+	if err != nil {
+		return err, ""
+	}
 
 	dh, err := client.Opendir(fmt.Sprintf("smb://%s", m.Input.Target.Host))
 	if err != nil {
