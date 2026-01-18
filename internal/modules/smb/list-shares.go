@@ -27,7 +27,7 @@ var Metadata = modules.ModuleMetadata{
 
 type ModuleInput struct {
 	// Target, either an IP or a Host
-	Target modules.ModuleTarget
+	Targets modules.Targets
 
 	// Credentials
 	// TODO: Change for generic
@@ -38,25 +38,42 @@ type Module struct {
 	Input ModuleInput
 }
 
-func (m *Module) Configure(input any) (error, string) {
+func (m *Module) Configure(input any) error {
 	mi, ok := input.(ModuleInput)
 	if !ok {
-		return fmt.Errorf("invalid input type"), ""
+		return fmt.Errorf("invalid input type")
 	}
 	m.Input = mi
-	return nil, "configured"
+	return nil
 }
 
-func (m *Module) Run() (error, string) {
+func (m *Module) Run() error {
+	targets, err := modules.GetTargets(m.Input.Targets)
+	if err != nil {
+		return err
+	}
+
+	for _, el := range targets {
+		err := m.RunOnce(el)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// TODO: Refactor to avoid having access to the targets from a Module object
+func (m *Module) RunOnce(target modules.ModuleTarget) error {
 	client := libsmbclient.New()
 	err := modules.SetupSMBAuth(client, m.Input.Credentials)
 	if err != nil {
-		return err, ""
+		return err
 	}
 
-	dh, err := client.Opendir(fmt.Sprintf("smb://%s", m.Input.Target.Host))
+	dh, err := client.Opendir(fmt.Sprintf("smb://%s", target.Host))
 	if err != nil {
-		return err, ""
+		return err
 	}
 
 	defer dh.Close()
@@ -68,5 +85,5 @@ func (m *Module) Run() (error, string) {
 		fmt.Println(dirent)
 	}
 
-	return nil, "Success"
+	return nil
 }

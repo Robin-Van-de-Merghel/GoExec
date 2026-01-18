@@ -2,9 +2,12 @@ package modules
 
 type Module interface {
 	// Configure a module
-	Configure(any) (error, string)
-	// Run a module
-	Run() (error, string)
+	Configure(any) error
+	// Run a module n-th time (n = Target number)
+	// TODO: Later make an "algorithm" function
+	Run() error
+	// Run a module once
+	RunOnce(ModuleTarget) error
 }
 
 type ModuleMetadata struct {

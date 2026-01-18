@@ -1,8 +1,11 @@
 package modules
 
 import (
+	"bufio"
 	"fmt"
 	"net"
+	"os"
+	"strings"
 )
 
 /*
@@ -18,7 +21,14 @@ Current choice: modules handle only one target at a time, and the core multiplie
 */
 
 // Given by the user
-type Target struct {
+type Targets struct {
+	// Could be an ip, ~~cidr~~, or file 
+	Host string `help:"Host of the target (e.g., IP, hostname)"`
+	
+	// File with multiple hosts
+	HostFile string `help:"Path to a file that contains multiple hosts"`
+
+	// CIDR string
 }
 
 // Given by the program to each module
@@ -76,4 +86,47 @@ func (mt ModuleTarget) ResolveToDomain() (string, error) {
 	}
 
 	return name, nil
+}
+
+// When a user gives a host, host file, etc., we have to return a list of hosts
+func GetTargets(targets Targets) ([]ModuleTarget, error) {
+	var outTargets []ModuleTarget	
+
+	// If hostfile is defined, ignore the rest and import the file 
+	if targets.HostFile != "" {
+		file, err := os.Open(targets.HostFile)
+		if err != nil {
+			return nil, err
+		}
+		var fileCloseErr error
+		defer func() {
+			if cerr := file.Close(); cerr != nil {
+				fileCloseErr = cerr
+			}
+		}()
+	
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			line := strings.TrimSpace(scanner.Text())
+			
+			if line != "" {
+				outTargets = append(outTargets, ModuleTarget{Host: line})
+			}
+		}
+	
+		return outTargets, fileCloseErr
+	}
+
+	// TODO: Modify to expand CIDR?
+	
+	// Fallback, no file given, need to try the host itself
+	if targets.Host == "" {
+		return nil, fmt.Errorf("Given host is empty")
+	}
+
+	outTargets = []ModuleTarget{
+		{Host: targets.Host},
+	}
+
+	return outTargets, nil
 }

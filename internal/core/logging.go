@@ -37,7 +37,7 @@ func RunModuleWithLogging(entry ModuleEntry, cmd *cobra.Command) error {
 	inputField.Set(inputInstance)
 
 	// Run module
-	err, msg := mod.Run()
+	err := mod.Run()
 	elapsed := time.Since(startTime)
 
 	if err != nil {
@@ -52,7 +52,6 @@ func RunModuleWithLogging(entry ModuleEntry, cmd *cobra.Command) error {
 	logger.Info("Module executed successfully",
 		slog.String("module", entry.Metadata.UniqueName),
 		slog.Duration("duration", elapsed),
-		slog.String("result", msg),
 	)
 
 	return nil
