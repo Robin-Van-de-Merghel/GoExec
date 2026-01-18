@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/GoExec/pkg/modules"
+	"github.com/mvo5/libsmbclient-go"
 )
 
 /*
@@ -47,5 +48,25 @@ func (m *Module) Configure(input any) (error, string) {
 }
 
 func (m *Module) Run() (error, string) {
+	client := libsmbclient.New()
+	// FIXME: Not working with empty password with SMB server
+	client.SetAuthCallback(modules.SMBAuth(
+		m.Input.Credentials.Domain, m.Input.Credentials.Username, m.Input.Credentials.Password,
+	))
+
+	dh, err := client.Opendir(fmt.Sprintf("smb://%s", m.Input.Target.Host))
+	if err != nil {
+		return err, ""
+	}
+
+	defer dh.Close()
+	for {
+		dirent, err := dh.Readdir()
+		if err != nil {
+			break
+		}
+		fmt.Println(dirent)
+	}
+
 	return nil, "Success"
 }

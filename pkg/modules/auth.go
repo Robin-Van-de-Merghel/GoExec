@@ -15,6 +15,7 @@ type Credentials interface{}
 
 // Classic username/password
 type UsernamePassAuth struct {
+	Domain   string `help:"Domain of the user"`
 	Username string `help:"Username to login with"`
 	Password string `help:"Password to login with"`
 }
