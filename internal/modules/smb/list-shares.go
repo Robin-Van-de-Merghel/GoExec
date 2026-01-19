@@ -2,6 +2,7 @@ package smb
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/GoExec/pkg/modules"
 	"github.com/mvo5/libsmbclient-go"
@@ -71,18 +72,20 @@ func (m *Module) RunOnce(target modules.ModuleTarget) error {
 		return err
 	}
 
-	dh, err := client.Opendir(fmt.Sprintf("smb://%s", target.Host))
+	dh, err := client.Opendir(
+		fmt.Sprintf("smb://%s/", target.Host),
+	)
 	if err != nil {
 		return err
 	}
+	defer dh.Closedir()
 
-	defer dh.Close()
 	for {
 		dirent, err := dh.Readdir()
 		if err != nil {
 			break
 		}
-		fmt.Println(dirent)
+		slog.Debug("Found a share", "share_name", dirent.Name, "share_comment", dirent.Comment)
 	}
 
 	return nil

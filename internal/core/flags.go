@@ -16,12 +16,18 @@ func SetupCLI() *cobra.Command {
 	var listTags bool
 	var moduleName string
 	var showOptions bool
+	var verbose bool
 
 	rootCmd := &cobra.Command{
 		Use:   "goexec [TAGS]...",
 		Short: "GoExec network scanner",
 		Long:  "GoExec - A network scanner written in go.",
 		RunE: func(cmd *cobra.Command, args []string) error {
+
+			if verbose {
+				slog.SetLogLoggerLevel(slog.LevelDebug)
+			}
+
 			// Extract tags from positional arguments
 			tags := extractTags(args)
 
@@ -99,6 +105,7 @@ func SetupCLI() *cobra.Command {
 	rootCmd.Flags().BoolVarP(&listModules, "list-modules", "L", false, "List matching modules")
 	rootCmd.Flags().StringVarP(&moduleName, "module", "M", "", "Module name to run")
 	rootCmd.Flags().BoolVar(&showOptions, "options", false, "Show module options/help")
+	rootCmd.Flags().BoolVar(&verbose, "verbose", false, "Print debug logs")
 
 	// Check if a module is being requested and add its flags
 	addModuleFlagsIfRequested(rootCmd)
