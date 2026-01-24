@@ -1,7 +1,7 @@
 package modules
 
 import (
-	"github.com/mvo5/libsmbclient-go"
+	libsmbclient "github.com/robin-van-de-merghel/libsmbclient-go/pkg/bindings"
 )
 
 var (

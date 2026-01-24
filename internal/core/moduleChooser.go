@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/GoExec/internal/modules/smb"
+	listshares "github.com/GoExec/internal/modules/smb/list-shares"
 	"github.com/GoExec/pkg/modules"
 )
 
@@ -12,9 +12,9 @@ type ModuleEntry struct {
 
 var AllModules = []ModuleEntry{
 	{
-		Metadata: smb.Metadata,
+		Metadata: listshares.Metadata,
 		Factory: func() modules.Module {
-			return &smb.Module{}
+			return &listshares.ListSharesModule{}
 		},
 	},
 }

@@ -5,9 +5,9 @@ type Module interface {
 	Configure(any) error
 	// Run a module n-th time (n = Target number)
 	// TODO: Later make an "algorithm" function
-	Run() error
+	Run() ([]any, error)
 	// Run a module once
-	RunOnce(ModuleTarget) error
+	RunOnce(ModuleTarget) (any, error)
 }
 
 type ModuleMetadata struct {
